@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swords & Wizardry Character Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        #characterTable {
+            width: 95%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        #characterTable, #characterTable th, #characterTable td {
+            border: 1px solid #ccc;
+        }
+        #characterTable th, #characterTable td {
+            padding: 10px;
+        }
+        button, input[type="number"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .radio-group {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Swords & Wizardry Character Generator</h1>
+    <div>
+        <label for="numCharacters">Number of Characters (1-5): </label>
+        <input type="number" id="numCharacters" min="1" max="5" value="1">
+    </div>
+    <div class="radio-group">
+        <label><input type="radio" name="rollType" value="npc" checked> NPC (3d6)</label>
+        <label><input type="radio" name="rollType" value="character"> Character (4d6 drop lowest)</label>
+        <label><input type="radio" name="rollType" value="superhero"> Super Heroic (4d6 reroll 1s)</label>
+    </div>
+    <button onclick="generateCharacters()">Generate Character(s)</button>
+    <div id="character"></div>
+
+    <script>
+        const classes = {
+            'Fighter': { Strength: 9 },
+            'Magic-User': { Intelligence: 9 },
+            'Cleric': { Wisdom: 9 },
+            'Thief': { Dexterity: 9 },
+            'Assassin': { Dexterity: 12, Intelligence: 12 },
+            'Ranger': { Strength: 13, Intelligence: 13, Wisdom: 14 },
+            'Paladin': { Strength: 12, Charisma: 17, Wisdom: 13 },
+            'Druid': { Wisdom: 12, Charisma: 15 },
+            'Illusionist': { Intelligence: 15, Dexterity: 16 }
+        };
+
+        const races = ['Human', 'Elf', 'Dwarf', 'Halfling'];
+
+        function rollDie(sides) {
+            return Math.floor(Math.random() * sides) + 1;
+        }
+
+        function rollStat(type) {
+            let rolls = [];
+            while (rolls.length < 4) {
+                let roll = rollDie(6);
+                if (type === 'superhero' && roll === 1) roll = rollDie(6);
+                rolls.push(roll);
+            }
+            rolls.sort((a, b) => b - a);
+            return type === 'npc' ? rolls.slice(0, 3).reduce((a, b) => a + b, 0) : rolls.slice(0, 3).reduce((a, b) => a + b, 0);
+        }
+
+        function assignRace() {
+            let roll = Math.random();
+            if (roll <= 0.85) return 'Human';
+            return races[Math.floor((roll - 0.85) / 0.05)];
+        }
+
+        function checkQualifiedClasses(stats) {
+            return Object.keys(classes).filter(cls => {
+                let requirements = classes[cls];
+                return Object.keys(requirements).every(stat => stats[stat] >= requirements[stat]);
+            });
+        }
+
+        function generateCharacters() {
+            const num = Math.min(5, Math.max(1, parseInt(document.getElementById('numCharacters').value)));
+            const rollType = document.querySelector('input[name="rollType"]:checked').value;
+            let table = `<table id="characterTable">
+                            <tr>
+                                <th>#</th>
+                                <th>Strength</th>
+                                <th>Dexterity</th>
+                                <th>Constitution</th>
+                                <th>Intelligence</th>
+                                <th>Wisdom</th>
+                                <th>Charisma</th>
+                                <th>Total</th>
+                                <th>Qualified Classes</th>
+                                <th>Selected Class</th>
+                                <th>Race</th>
+                            </tr>`;
+            
+            for (let i = 1; i <= num; i++) {
+                const stats = {
+                    Strength: rollStat(rollType),
+                    Dexterity: rollStat(rollType),
+                    Constitution: rollStat(rollType),
+                    Intelligence: rollStat(rollType),
+                    Wisdom: rollStat(rollType),
+                    Charisma: rollStat(rollType)
+                };
+                const totalStats = Object.values(stats).reduce((a, b) => a + b, 0);
+                const qualifiedClasses = checkQualifiedClasses(stats);
+                const selectedClass = qualifiedClasses.length ? qualifiedClasses[Math.floor(Math.random() * qualifiedClasses.length)] : 'None';
+                const race = assignRace();
+
+                table += `<tr>
+                            <td>${i}</td>
+                            <td>${stats.Strength}</td>
+                            <td>${stats.Dexterity}</td>
+                            <td>${stats.Constitution}</td>
+                            <td>${stats.Intelligence}</td>
+                            <td>${stats.Wisdom}</td>
+                            <td>${stats.Charisma}</td>
+                            <td>${totalStats}</td>
+                            <td>${qualifiedClasses.join(', ') || 'None'}</td>
+                            <td>${selectedClass}</td>
+                            <td>${race}</td>
+                          </tr>`;
+            }
+            table += '</table>';
+            document.getElementById('character').innerHTML = table;
+        }
+    </script>
+</body>
+</html>
