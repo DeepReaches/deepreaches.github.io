@@ -13,7 +13,7 @@
             padding: 20px;
         }
         #characterTable {
-            width: 90%;
+            width: 95%;
             margin: 20px auto;
             border-collapse: collapse;
         }
@@ -103,6 +103,7 @@
                                 <th>Intelligence</th>
                                 <th>Wisdom</th>
                                 <th>Charisma</th>
+                                <th>Total</th>
                                 <th>Qualified Classes</th>
                                 <th>Selected Class</th>
                                 <th>Race</th>
@@ -117,6 +118,7 @@
                     Wisdom: rollStat(rollType),
                     Charisma: rollStat(rollType)
                 };
+                const totalStats = Object.values(stats).reduce((a, b) => a + b, 0);
                 const qualifiedClasses = checkQualifiedClasses(stats);
                 const selectedClass = qualifiedClasses.length ? qualifiedClasses[Math.floor(Math.random() * qualifiedClasses.length)] : 'None';
                 const race = assignRace();
@@ -129,14 +131,8 @@
                             <td>${stats.Intelligence}</td>
                             <td>${stats.Wisdom}</td>
                             <td>${stats.Charisma}</td>
+                            <td>${totalStats}</td>
                             <td>${qualifiedClasses.join(', ') || 'None'}</td>
                             <td>${selectedClass}</td>
                             <td>${race}</td>
-                          </tr>`;
-            }
-            table += '</table>';
-            document.getElementById('character').innerHTML = table;
-        }
-    </script>
-</body>
-</html>
+                          </tr
